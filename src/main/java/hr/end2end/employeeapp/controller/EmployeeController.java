@@ -1,11 +1,13 @@
 package hr.end2end.employeeapp.controller;
 
+import hr.end2end.employeeapp.dto.EmployeeHomeListDto;
 import hr.end2end.employeeapp.model.Employee;
 import hr.end2end.employeeapp.model.EmploymentContract;
 import hr.end2end.employeeapp.service.EmployeeService;
 import hr.end2end.employeeapp.service.EmploymentContractService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +43,14 @@ public class EmployeeController {
 
         List<Employee> allEmployees = employeeService.getAllEmployees();
         return ResponseEntity.ok(allEmployees);
+    }
+
+    @GetMapping("/employeesPage")
+    public ResponseEntity<EmployeeHomeListDto> findAllInPage(@RequestParam Integer page,
+                                                             @RequestParam Integer size) {
+        Page<Employee> pageResult = employeeService.getAllEmployeesPaginated(page, size);
+        EmployeeHomeListDto dto = new EmployeeHomeListDto(pageResult.getContent(),pageResult.getTotalPages(),page);
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/employees/{employeeId}")
@@ -95,7 +105,7 @@ public class EmployeeController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        Employee updatedEmployee = employeeService.updateEmployee(employeeId,employeeToUpdates);
+        Employee updatedEmployee = employeeService.updateEmployee(employeeId, employeeToUpdates);
 
         List<EmploymentContract> employmentContracts = employeeToUpdates.getEmploymentContracts();
         employmentContractService.updateEmploymentContracts(employmentContracts, existingContracts, updatedEmployee);
